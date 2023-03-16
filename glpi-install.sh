@@ -121,23 +121,23 @@ mariadb-server \
 perl \
 curl \
 jq \
-php-fpm
+php7.4-fpm
 info "Installing php extensions..."
 apt install --yes --no-install-recommends \
-php-ldap \
-php-imap \
-php-apcu \
-php-xmlrpc \
-php-cas \
-php-mysqli \
-php-mbstring \
-php-curl \
-php-gd \
-php-simplexml \
-php-xml \
-php-intl \
-php-zip \
-php-bz2
+php7.4-ldap \
+php7.4-imap \
+php7.4-apcu \
+php7.4-xmlrpc \
+php7.4-cas \
+php7.4-mysqli \
+php7.4-mbstring \
+php7.4-curl \
+php7.4-gd \
+php7.4-simplexml \
+php7.4-xml \
+php7.4-intl \
+php7.4-zip \
+php7.4-bz2
 systemctl enable mariadb
 systemctl enable nginx
 }
@@ -278,3 +278,4 @@ mariadb_configure
 install_glpi
 setup_db
 display_credentials
+
