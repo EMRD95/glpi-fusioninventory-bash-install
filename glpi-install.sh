@@ -115,6 +115,13 @@ function install_packages()
 info "Installing packages..."
 sleep 1
 apt update
+
+info "Adding PHP 7.4 repository..."
+apt install --yes --no-install-recommends software-properties-common
+add-apt-repository --yes ppa:ondrej/php
+apt update
+
+info "Installing Nginx, MariaDB, and PHP 7.4..."
 apt install --yes --no-install-recommends \
 nginx \
 mariadb-server \
@@ -122,7 +129,8 @@ perl \
 curl \
 jq \
 php7.4-fpm
-info "Installing php extensions..."
+
+info "Installing PHP 7.4 extensions..."
 apt install --yes --no-install-recommends \
 php7.4-ldap \
 php7.4-imap \
@@ -138,6 +146,7 @@ php7.4-xml \
 php7.4-intl \
 php7.4-zip \
 php7.4-bz2
+
 systemctl enable mariadb
 systemctl enable nginx
 }
