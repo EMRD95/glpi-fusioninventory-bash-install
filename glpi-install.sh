@@ -116,12 +116,12 @@ info "Installing packages..."
 sleep 1
 apt update
 apt install --yes --no-install-recommends \
-apache2 \
+nginx \
 mariadb-server \
 perl \
 curl \
 jq \
-php
+php-fpm
 info "Installing php extensions..."
 apt install --yes --no-install-recommends \
 php-ldap \
@@ -139,7 +139,7 @@ php-intl \
 php-zip \
 php-bz2
 systemctl enable mariadb
-systemctl enable apache2
+systemctl enable nginx
 }
 
 function mariadb_configure()
@@ -195,32 +195,40 @@ FUSIONLINK=https://github.com/fusioninventory/fusioninventory-for-glpi/releases/
 wget -O /tmp/fusioninventory.tgz $FUSIONLINK
 tar xf /tmp/fusioninventory.tgz -C /var/www/html/glpi/marketplace
 
-# Setup vhost
-cat > /etc/apache2/sites-available/000-default.conf << EOF
-<VirtualHost *:80>
-        DocumentRoot /var/www/html/glpi
+# Setup server block
+cat > /etc/nginx/sites-available/default << EOF
+server {
+        listen 80 default_server;
+        listen [::]:80 default_server;
 
-        <Directory /var/www/html/glpi>
-                AllowOverride All
-                Order Allow,Deny
-                Allow from all
-        </Directory>
+                root /var/www/html/glpi;
+        index index.php index.html index.htm;
 
-        ErrorLog /var/log/apache2/error-glpi.log
-        LogLevel warn
-        CustomLog /var/log/apache2/access-glpi.log combined
-</VirtualHost>
+        server_name _;
+
+        location / {
+                try_files $uri $uri/ =404;
+        }
+
+        location ~ \.php$ {
+                include snippets/fastcgi-php.conf;
+                fastcgi_pass unix:/run/php/php7.4-fpm.sock;
+        }
+
+        location ~ /\.ht {
+                deny all;
+        }
+
+        access_log /var/log/nginx/access-glpi.log;
+        error_log /var/log/nginx/error-glpi.log;
+}
 EOF
-
-#Disable Apache Web Server Signature
-echo "ServerSignature Off" >> /etc/apache2/apache2.conf
-echo "ServerTokens Prod" >> /etc/apache2/apache2.conf
 
 # Setup Cron task
 echo "*/2 * * * * www-data /usr/bin/php /var/www/html/glpi/front/cron.php &>/dev/null" >> /etc/cron.d/glpi
 
-#Activation du module rewrite d'apache
-a2enmod rewrite && service apache2 restart
+# Restart Nginx
+systemctl restart nginx
 }
 
 function setup_db()
@@ -228,7 +236,7 @@ function setup_db()
 info "Setting up GLPI..."
 cd /var/www/html/glpi
 php bin/console db:install --db-name=glpi --db-user=glpi_user --db-password=$SQLGLPIPWD --no-interaction
-#Sleep 1 because GLPI install latency
+# Sleep 1 because GLPI install latency
 sleep 1
 info "Installing and activating FusionIventory plugin"
 php bin/console glpi:plugin:install fusioninventory --username=glpi
@@ -240,7 +248,7 @@ rm -rf /var/www/html/glpi/install
 function display_credentials()
 {
 info "=======> GLPI installation details  <======="
-warn "It is important to record this informations. If you lose them, they will be unrecoverable."
+warn "It is important to record these informations. If you lose them, they will be unrecoverable."
 info "==> GLPI:"
 info "Default user accounts are:"
 info "USER       -  PASSWORD       -  ACCESS"
@@ -260,7 +268,6 @@ info "<==========================================>"
 echo ""
 info "If you encounter any issue with this script, please report it on GitHub: https://github.com/jr0w3/GLPI_install_script/issues"
 }
-
 
 check_root
 check_distro
