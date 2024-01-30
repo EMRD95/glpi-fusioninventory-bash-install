@@ -1,4 +1,4 @@
-# glpi-fusioninventory-bash-install
+# glpi-fusioninventory-bash-install with Nginx
 
  <img alt="GLPI IMG" src="https://glpi-project.org/wp-content/uploads/2022/01/assets-2.png">
 
@@ -44,9 +44,21 @@ This script was tested on this distributions:
 
 
 ## How to use
-GLPI_install_script  is installed by running one of the following commands in your terminal. You can install this via the command-line with either curl or wget.
+GLPI_install_script is installed by running one of the following commands in your terminal. You can install this via the command-line with either curl or wget.
 
     wget https://raw.githubusercontent.com/jr0w3/glpi-fusioninventory-bash-install/main/glpi-install.sh && bash glpi-install.sh
 or with curl
 
     curl -O https://raw.githubusercontent.com/jr0w3/glpi-fusioninventory-bash-install/main/glpi-install.sh && bash glpi-install.sh
+
+
+
+Fix permission issue for logs
+
+The log file could not be created in /var/www/html/glpi/files/_log.The log file could not be created in /var/www/html/glpi/files/_log. seen in Setup > General
+
+
+sudo chown -R www-data:www-data /var/www/html/glpi/files/_log
+
+sudo chmod -R 755 /var/www/html/glpi/files/_log
+
